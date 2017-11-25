@@ -8,10 +8,11 @@ from threading import Thread
 from websocket import create_connection, WebSocketConnectionClosedException
 
 
+URL = "wss://ws-feed.gdax.com"
+
+
 class WebsocketClient(object):
-    def __init__(self, url="wss://ws-feed.gdax.com", products=None, message_type="subscribe", should_print=True,
-                 channels=None):
-        self.url = url
+    def __init__(self, products=None, message_type="subscribe", channels=None):
         self.products = products
         self.channels = channels
         self.type = message_type
@@ -19,7 +20,6 @@ class WebsocketClient(object):
         self.error = None
         self.ws = None
         self.thread = None
-        self.should_print = should_print
 
     def start(self):
         def _go():
@@ -28,31 +28,24 @@ class WebsocketClient(object):
             self._disconnect()
 
         self.stop = False
-        self.on_open()
         self.thread = Thread(target=_go)
         self.thread.start()
 
     def _connect(self):
-        if self.products is None:
-            self.products = ["BTC-USD"]
-        elif not isinstance(self.products, list):
-            self.products = [self.products]
+        self.products = self.products or ["BTC-USD"]
+        self.products = self.products if isinstance(self.products, list) else [self.products]
 
-        if self.url[-1] == "/":
-            self.url = self.url[:-1]
+        sub_params = {'type': 'subscribe', 'product_ids': self.products}
+        if self.channels:
+            sub_params['channels'] = self.channels
 
-        if self.channels is None:
-            sub_params = {'type': 'subscribe', 'product_ids': self.products}
-        else:
-            sub_params = {'type': 'subscribe', 'product_ids': self.products, 'channels': self.channels}
-
-        self.ws = create_connection(self.url)
+        self.ws = create_connection(URL)
         self.ws.send(json.dumps(sub_params))
 
-        if self.type == "heartbeat":
-            sub_params = {"type": "heartbeat", "on": True}
-        else:
-            sub_params = {"type": "heartbeat", "on": False}
+        self.on_open()
+
+        heartbeat_on = self.type == "heartbeat"
+        sub_params = {"type": "heartbeat", "on": heartbeat_on}
         self.ws.send(json.dumps(sub_params))
 
     def _listen(self):
@@ -86,16 +79,13 @@ class WebsocketClient(object):
         self.thread.join()
 
     def on_open(self):
-        if self.should_print:
-            print("-- Subscribed! --\n")
+        print("-- Subscribed! --\n")
 
     def on_close(self):
-        if self.should_print:
-            print("\n-- Socket Closed --")
+        print("\n-- Socket Closed --")
 
     def on_message(self, msg):
-        if self.should_print:
-            print(msg)
+        print(msg)
 
     def on_error(self, e, data=None):
         self.error = e
