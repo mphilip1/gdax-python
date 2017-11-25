@@ -1,8 +1,5 @@
 # gdax/WebsocketClient.py
 # original author: Daniel Paquin
-# mongo "support" added by Drew Rice
-#
-#
 # Template object to receive messages from the gdax Websocket Feed
 
 from __future__ import print_function
@@ -13,13 +10,12 @@ import hashlib
 import time
 from threading import Thread
 from websocket import create_connection, WebSocketConnectionClosedException
-from pymongo import MongoClient
 from gdax.gdax_auth import get_auth_headers
 
 
 class WebsocketClient(object):
-    def __init__(self, url="wss://ws-feed.gdax.com", products=None, message_type="subscribe", mongo_collection=None,
-                 should_print=True, auth=False, api_key="", api_secret="", api_passphrase="", channels=None):
+    def __init__(self, url="wss://ws-feed.gdax.com", products=None, message_type="subscribe", should_print=True,
+                 auth=False, api_key="", api_secret="", api_passphrase="", channels=None):
         self.url = url
         self.products = products
         self.channels = channels
@@ -33,7 +29,6 @@ class WebsocketClient(object):
         self.api_secret = api_secret
         self.api_passphrase = api_passphrase
         self.should_print = should_print
-        self.mongo_collection = mongo_collection
 
     def start(self):
         def _go():
@@ -115,8 +110,6 @@ class WebsocketClient(object):
     def on_message(self, msg):
         if self.should_print:
             print(msg)
-        if self.mongo_collection:  # dump JSON to given mongo collection
-            self.mongo_collection.insert_one(msg)
 
     def on_error(self, e, data=None):
         self.error = e

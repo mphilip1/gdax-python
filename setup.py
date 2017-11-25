@@ -6,8 +6,7 @@ install_requires = [
     'bintrees==2.0.7',
     'requests==2.13.0',
     'six==1.10.0',
-    'websocket-client==0.40.0',
-    'pymongo==3.5.1'
+    'websocket-client==0.40.0'
 ]
 
 tests_require = [
