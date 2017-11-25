@@ -4,18 +4,13 @@
 
 from __future__ import print_function
 import json
-import base64
-import hmac
-import hashlib
-import time
 from threading import Thread
 from websocket import create_connection, WebSocketConnectionClosedException
-from gdax.gdax_auth import get_auth_headers
 
 
 class WebsocketClient(object):
     def __init__(self, url="wss://ws-feed.gdax.com", products=None, message_type="subscribe", should_print=True,
-                 auth=False, api_key="", api_secret="", api_passphrase="", channels=None):
+                 channels=None):
         self.url = url
         self.products = products
         self.channels = channels
@@ -24,10 +19,6 @@ class WebsocketClient(object):
         self.error = None
         self.ws = None
         self.thread = None
-        self.auth = auth
-        self.api_key = api_key
-        self.api_secret = api_secret
-        self.api_passphrase = api_passphrase
         self.should_print = should_print
 
     def start(self):
@@ -54,11 +45,6 @@ class WebsocketClient(object):
             sub_params = {'type': 'subscribe', 'product_ids': self.products}
         else:
             sub_params = {'type': 'subscribe', 'product_ids': self.products, 'channels': self.channels}
-
-        if self.auth:
-            timestamp = str(time.time())
-            message = timestamp + 'GET' + '/users/self'
-            sub_params.update(get_auth_headers(timestamp, message, self.api_key,  self.api_secret, self.api_passphrase))
 
         self.ws = create_connection(self.url)
         self.ws.send(json.dumps(sub_params))
@@ -113,7 +99,6 @@ class WebsocketClient(object):
 
     def on_error(self, e, data=None):
         self.error = e
-        self.stop
         print('{} - data: {}'.format(e, data))
 
 
