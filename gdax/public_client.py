@@ -18,7 +18,7 @@ class PublicClient(object):
 
     """
 
-    def __init__(self, api_url='https://api.gdax.com'):
+    def __init__(self, api_url='https://api.gdax.com', timeout=30):
         """Create GDAX API public client.
 
         Args:
@@ -26,6 +26,7 @@ class PublicClient(object):
 
         """
         self.url = api_url.rstrip('/')
+        self.timeout = timeout
 
     def get_products(self):
         """Get a list of available currency pairs for trading.
@@ -45,7 +46,7 @@ class PublicClient(object):
                 ]
 
         """
-        r = requests.get(self.url + '/products', timeout=30)
+        r = requests.get(self.url + '/products', timeout=self.timeout)
         # r.raise_for_status()
         return r.json()
 
@@ -86,7 +87,7 @@ class PublicClient(object):
         """
         params = {'level': level}
         r = requests.get(self.url + '/products/{}/book'
-                         .format(product_id), params=params, timeout=30)
+                         .format(product_id), params=params, timeout=self.timeout)
         # r.raise_for_status()
         return r.json()
 
@@ -113,7 +114,7 @@ class PublicClient(object):
 
         """
         r = requests.get(self.url + '/products/{}/ticker'
-                         .format(product_id), timeout=30)
+                         .format(product_id), timeout=self.timeout)
         # r.raise_for_status()
         return r.json()
 
@@ -140,7 +141,7 @@ class PublicClient(object):
                 }]
 
         """
-        r = requests.get(self.url + '/products/{}/trades'.format(product_id), timeout=30)
+        r = requests.get(self.url + '/products/{}/trades'.format(product_id), timeout=self.timeout)
         # r.raise_for_status()
         return r.json()
 
@@ -189,7 +190,7 @@ class PublicClient(object):
         if granularity is not None:
             params['granularity'] = granularity
         r = requests.get(self.url + '/products/{}/candles'
-                         .format(product_id), params=params, timeout=30)
+                         .format(product_id), params=params, timeout=self.timeout)
         # r.raise_for_status()
         return r.json()
 
@@ -210,7 +211,7 @@ class PublicClient(object):
                     }
 
         """
-        r = requests.get(self.url + '/products/{}/stats'.format(product_id), timeout=30)
+        r = requests.get(self.url + '/products/{}/stats'.format(product_id), timeout=self.timeout)
         # r.raise_for_status()
         return r.json()
 
@@ -230,7 +231,7 @@ class PublicClient(object):
                 }]
 
         """
-        r = requests.get(self.url + '/currencies', timeout=30)
+        r = requests.get(self.url + '/currencies', timeout=self.timeout)
         # r.raise_for_status()
         return r.json()
 
@@ -246,6 +247,6 @@ class PublicClient(object):
                     }
 
         """
-        r = requests.get(self.url + '/time', timeout=30)
+        r = requests.get(self.url + '/time', timeout=self.timeout)
         # r.raise_for_status()
         return r.json()

@@ -4,11 +4,13 @@
 
 from __future__ import print_function
 import json
+import time
 from threading import Thread
 from websocket import create_connection, WebSocketConnectionClosedException
 
 
 URL = "wss://ws-feed.gdax.com"
+SANDBOX_URL = "wss://ws-feed-public.sandbox.gdax.com"
 
 
 class WebsocketClient(object):
@@ -38,11 +40,9 @@ class WebsocketClient(object):
         sub_params = {'type': 'subscribe', 'product_ids': self.products}
         if self.channels:
             sub_params['channels'] = self.channels
-
         self.ws = create_connection(URL)
-        self.ws.send(json.dumps(sub_params))
-
         self.on_open()
+        self.ws.send(json.dumps(sub_params))
 
         heartbeat_on = self.type == "heartbeat"
         sub_params = {"type": "heartbeat", "on": heartbeat_on}
@@ -51,9 +51,9 @@ class WebsocketClient(object):
     def _listen(self):
         while not self.stop:
             try:
-                if int(time.time() % 30) == 0:
+                # if int(time.time() % 30) == 0:
                     # Set a 30 second ping to keep connection alive
-                    self.ws.ping("keepalive")
+                    # self.ws.ping("keepalive")
                 data = self.ws.recv()
                 msg = json.loads(data)
             except ValueError as e:
