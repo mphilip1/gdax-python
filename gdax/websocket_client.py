@@ -4,6 +4,9 @@
 
 from __future__ import print_function
 import json
+import base64
+import hmac
+import hashlib
 import time
 from threading import Thread
 from websocket import create_connection, WebSocketConnectionClosedException
@@ -14,14 +17,14 @@ SANDBOX_URL = "wss://ws-feed-public.sandbox.gdax.com"
 
 
 class WebsocketClient(object):
-    def __init__(self, products=None, message_type="subscribe", channels=None):
+    def __init__(self, products=None, channels=None, auth=None):
         self.products = products
         self.channels = channels
-        self.type = message_type
         self.stop = False
         self.error = None
         self.ws = None
         self.thread = None
+        self.auth=auth
 
     def start(self):
         def _go():
@@ -40,12 +43,21 @@ class WebsocketClient(object):
         sub_params = {'type': 'subscribe', 'product_ids': self.products}
         if self.channels:
             sub_params['channels'] = self.channels
+
+        if self.auth:
+            timestamp = str(time.time())
+            message = timestamp + 'GET' + '/users/self/verify'
+            message = message.encode('ascii')
+            hmac_key = base64.b64decode(self.auth.api_secret)
+            signature = hmac.new(hmac_key, message, hashlib.sha256)
+            signature_b64 = base64.b64encode(signature.digest())
+            sub_params['signature'] = signature_b64
+            sub_params['key'] = self.auth.api_key
+            sub_params['passphrase'] = self.auth.passphrase
+            sub_params['timestamp'] = timestamp
+
         self.ws = create_connection(URL)
         self.on_open()
-        self.ws.send(json.dumps(sub_params))
-
-        heartbeat_on = self.type == "heartbeat"
-        sub_params = {"type": "heartbeat", "on": heartbeat_on}
         self.ws.send(json.dumps(sub_params))
 
     def _listen(self):
@@ -64,8 +76,6 @@ class WebsocketClient(object):
                 self.on_message(msg)
 
     def _disconnect(self):
-        if self.type == "heartbeat":
-            self.ws.send(json.dumps({"type": "heartbeat", "on": False}))
         try:
             if self.ws:
                 self.ws.close()

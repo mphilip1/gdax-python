@@ -92,7 +92,7 @@ class AuthenticatedClient(PublicClient):
         if product_id:
             url += "?product_id={}&".format(str(product_id))
         r = requests.delete(url, auth=self.auth, timeout=self.timeout)
-        # r.raise_for_status()
+        r.raise_for_status()
         return r.json()
 
     def get_order(self, order_id):
