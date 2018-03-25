@@ -16,9 +16,9 @@ from gdax.gdax_auth import GdaxAuth
 
 
 class AuthenticatedClient(PublicClient):
-    def __init__(self, key, b64secret, passphrase, api_url="https://api.gdax.com", timeout=30):
+    def __init__(self, gdax_auth, api_url="https://api.gdax.com", timeout=30):
         super(AuthenticatedClient, self).__init__(api_url, timeout=timeout)
-        self.auth = GdaxAuth(key, b64secret, passphrase)
+        self.auth = gdax_auth
 
     def get_account(self, account_id):
         r = requests.get(self.url + '/accounts/' + account_id, auth=self.auth, timeout=self.timeout)

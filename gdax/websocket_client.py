@@ -48,7 +48,7 @@ class WebsocketClient(object):
             timestamp = str(time.time())
             message = timestamp + 'GET' + '/users/self/verify'
             message = message.encode('ascii')
-            hmac_key = base64.b64decode(self.auth.api_secret)
+            hmac_key = base64.b64decode(self.auth.secret_key)
             signature = hmac.new(hmac_key, message, hashlib.sha256)
             signature_b64 = base64.b64encode(signature.digest())
             sub_params['signature'] = signature_b64
