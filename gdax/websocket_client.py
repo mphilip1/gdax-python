@@ -33,6 +33,7 @@ class WebsocketClient(object):
             self._disconnect()
 
         self.stop = False
+        self.on_open()
         self.thread = Thread(target=_go)
         self.thread.start()
 
@@ -57,15 +58,16 @@ class WebsocketClient(object):
             sub_params['timestamp'] = timestamp
 
         self.ws = create_connection(URL)
-        self.on_open()
+
         self.ws.send(json.dumps(sub_params))
 
     def _listen(self):
+        start_t = 0
         while not self.stop:
             try:
-                start_t = 0
-                if time.time() - start_t >= 25:
-                    # Set a 25 second ping to keep connection alive
+                curr_time = time.time()
+                if curr_time - start_t >= 30:
+                    # Set a 30 second ping to keep connection alive
                     self.ws.ping("keepalive")
                     start_t = time.time()
                 data = self.ws.recv()
